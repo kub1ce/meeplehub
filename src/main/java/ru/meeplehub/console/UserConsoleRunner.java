@@ -78,7 +78,15 @@ public class UserConsoleRunner implements CommandLineRunner {
         System.out.print("Отображаемое имя: ");
         String displayName = readLine(scanner);
 
-        User created = userService.registerUser(username, email, displayName);
+        System.out.print("Пароль: ");
+        String password = readLine(scanner);
+
+        User created = userService.registerUser(
+                username,
+                email,
+                displayName,
+                password
+        );
         System.out.println("Пользователь зарегистрирован: " + created);
     }
 

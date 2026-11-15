@@ -9,7 +9,12 @@ import java.util.Optional;
 /** Бизнес-операции над пользователями платформы. */
 public interface UserService {
 
-    User registerUser(String username, String email, String displayName);
+    User registerUser(
+            String username,
+            String email,
+            String displayName,
+            String password
+    );
 
     Optional<User> findById(Long id);
 
