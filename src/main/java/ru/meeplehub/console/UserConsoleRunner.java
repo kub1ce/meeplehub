@@ -1,6 +1,7 @@
 package ru.meeplehub.console;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import ru.meeplehub.domain.entity.User;
 import ru.meeplehub.domain.enums.UserStatus;
@@ -11,6 +12,11 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Scanner;
 
+@ConditionalOnProperty(
+        prefix = "app.console",
+        name = "enabled",
+        havingValue = "true"
+)
 @Component
 public class UserConsoleRunner implements CommandLineRunner {
 

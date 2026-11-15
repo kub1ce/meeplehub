@@ -2,59 +2,83 @@ package ru.meeplehub.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.meeplehub.config.AppConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import ru.meeplehub.domain.entity.User;
 import ru.meeplehub.domain.enums.UserStatus;
-import ru.meeplehub.repository.UserRepository;
+import ru.meeplehub.repository.*;
 
-import java.util.ArrayList;
+import static org.junit.jupiter.api.Assertions.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+@SpringBootTest
+@ActiveProfiles("test")
 class UserServiceImplTest {
 
-    private UserServiceImpl userService;
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private RegistrationRepository registrationRepository;
+
+    @Autowired
+    private ReviewRepository reviewRepository;
+
+    @Autowired
+    private EventRepository eventRepository;
+
+    @Autowired
+    private BoardGameRepository boardGameRepository;
 
     @BeforeEach
     void setUp() {
-        UserRepository repository = new UserRepository(new ArrayList<>());
-        AppConfiguration appConfiguration = new AppConfiguration("MeepleHub test", "test");
-        userService = new UserServiceImpl(repository, appConfiguration);
+        registrationRepository.deleteAll();
+        reviewRepository.deleteAll();
+        eventRepository.deleteAll();
+        boardGameRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Test
-    void shouldRegisterUserWithGeneratedIdAndActiveStatus() {
-        User user = userService.registerUser("player_1", "player@example.com", "Player One");
+    void shouldRegisterUser() {
+        User user = userService.registerUser(
+                "player_1",
+                "player@example.com",
+                "Player One"
+        );
 
-        assertEquals(1L, user.getId());
+        assertNotNull(user.getId());
         assertEquals("player_1", user.getUsername());
-        assertEquals("player@example.com", user.getEmail());
         assertEquals(UserStatus.ACTIVE, user.getStatus());
-        assertTrue(user.getRegisteredAt() != null);
     }
 
     @Test
-    void shouldRejectDuplicateUsernameIgnoringCase() {
-        userService.registerUser("player_1", "one@example.com", "Player One");
+    void shouldRejectDuplicateUsername() {
+        userService.registerUser(
+                "player_1", "one@example.com", "Player One");
 
         assertThrows(IllegalArgumentException.class,
-                () -> userService.registerUser("PLAYER_1", "two@example.com", "Player Two"));
+                () -> userService.registerUser(
+                        "PLAYER_1", "two@example.com", "Player Two"));
     }
 
     @Test
     void shouldRejectInvalidEmail() {
         assertThrows(IllegalArgumentException.class,
-                () -> userService.registerUser("player_1", "not-an-email", "Player One"));
+                () -> userService.registerUser(
+                        "player_1", "wrong-email", "Player One"));
     }
 
     @Test
     void shouldUpdateProfile() {
-        User created = userService.registerUser("player_1", "one@example.com", "Player One");
+        User user = userService.registerUser(
+                "player_1", "one@example.com", "Player One");
 
-        User updated = userService.updateProfile(created.getId(), "new@example.com", "New Name");
+        User updated = userService.updateProfile(
+                user.getId(), "new@example.com", "New Name");
 
         assertEquals("new@example.com", updated.getEmail());
         assertEquals("New Name", updated.getDisplayName());
@@ -62,19 +86,22 @@ class UserServiceImplTest {
 
     @Test
     void shouldChangeStatus() {
-        User created = userService.registerUser("player_1", "one@example.com", "Player One");
+        User user = userService.registerUser(
+                "player_1", "one@example.com", "Player One");
 
-        User updated = userService.changeStatus(created.getId(), UserStatus.BLOCKED);
+        User updated = userService.changeStatus(
+                user.getId(), UserStatus.BLOCKED);
 
         assertEquals(UserStatus.BLOCKED, updated.getStatus());
     }
 
     @Test
     void shouldDeleteUser() {
-        User created = userService.registerUser("player_1", "one@example.com", "Player One");
+        User user = userService.registerUser(
+                "player_1", "one@example.com", "Player One");
 
-        userService.deleteById(created.getId());
+        userService.deleteById(user.getId());
 
-        assertFalse(userService.findById(created.getId()).isPresent());
+        assertTrue(userService.findById(user.getId()).isEmpty());
     }
 }

@@ -1,37 +1,57 @@
 package ru.meeplehub.domain.entity;
 
+import jakarta.persistence.*;
 import ru.meeplehub.domain.enums.UserRole;
 import ru.meeplehub.domain.enums.UserStatus;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
+@Entity
+@Table(name = "users", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "username"),
+        @UniqueConstraint(columnNames = "email")
+})
 public class User {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false, length = 30)
     private String username;
+
+    @Column(nullable = false, length = 254)
     private String email;
+
+    @Column(name = "display_name", nullable = false, length = 80)
     private String displayName;
+
+    @Column(name = "password_hash", length = 255)
+    private String passwordHash;
+
+    @Column(name = "registered_at", nullable = false)
     private LocalDateTime registeredAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "user_role", nullable = false, length = 20)
     private UserRole role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
     private UserStatus status;
 
-    public User() {
-    }
+    @OneToMany(mappedBy = "organizer")
+    private List<Event> organizedEvents = new ArrayList<>();
 
-    public User(Long id,
-                String username,
-                String email,
-                String displayName,
-                LocalDateTime registeredAt,
-                UserRole role,
-                UserStatus status) {
-        this.id = id;
-        this.username = username;
-        this.email = email;
-        this.displayName = displayName;
-        this.registeredAt = registeredAt;
-        this.role = role;
-        this.status = status;
+    @OneToMany(mappedBy = "user")
+    private List<Registration> registrations = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<Review> reviews = new ArrayList<>();
+
+    public User() {
     }
 
     public Long getId() {
@@ -66,6 +86,14 @@ public class User {
         this.displayName = displayName;
     }
 
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
     public LocalDateTime getRegisteredAt() {
         return registeredAt;
     }
@@ -90,6 +118,18 @@ public class User {
         this.status = status;
     }
 
+    public List<Event> getOrganizedEvents() {
+        return organizedEvents;
+    }
+
+    public List<Registration> getRegistrations() {
+        return registrations;
+    }
+
+    public List<Review> getReviews() {
+        return reviews;
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -97,7 +137,6 @@ public class User {
                 ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
                 ", displayName='" + displayName + '\'' +
-                ", registeredAt=" + registeredAt +
                 ", role=" + role +
                 ", status=" + status +
                 '}';
