@@ -8,6 +8,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.data.rest.core.annotation.RestResource;
+
 @Entity
 @Table(name = "users", uniqueConstraints = {
         @UniqueConstraint(columnNames = "username"),
@@ -28,6 +31,8 @@ public class User {
     @Column(name = "display_name", nullable = false, length = 80)
     private String displayName;
 
+    @JsonIgnore
+    @RestResource(exported = false)
     @Column(name = "password_hash", length = 255)
     private String passwordHash;
 

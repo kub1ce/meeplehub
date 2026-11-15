@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeepleHub — Каталог игр</title>
+
+    <style>
+        body {
+            margin: 40px auto;
+            max-width: 1100px;
+            padding: 0 20px;
+            font-family: Arial, sans-serif;
+            color: #252525;
+            background: #f5f5f5;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+        }
+
+        .description {
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            padding: 13px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #292929;
+            color: white;
+        }
+
+        tr:hover {
+            background: #f0f0f0;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 30px;
+            color: #777;
+        }
+
+        a {
+            color: #315dc9;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+<h1>MeepleHub</h1>
+<p class="description">Каталог настольных игр</p>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Название</th>
+        <th>Издатель</th>
+        <th>Категория</th>
+        <th>Игроки</th>
+        <th>Время</th>
+        <th>Возраст</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="game : ${games}">
+        <td th:text="${game.id}"></td>
+        <td th:text="${game.title}"></td>
+        <td th:text="${game.publisher}"></td>
+        <td th:text="${game.category}"></td>
+        <td th:text="${game.minPlayers + '–' + game.maxPlayers}"></td>
+        <td th:text="${game.durationMinutes + ' мин.'}"></td>
+        <td th:text="${game.minAge + '+'}"></td>
+    </tr>
+
+    <tr th:if="${#lists.isEmpty(games)}">
+        <td colspan="7" class="empty">
+            В каталоге пока нет настольных игр.
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<p style="margin-top: 25px;">
+    <a href="/api/board-games">Открыть REST API каталога</a>
+</p>
+
+</body>
+</html>
