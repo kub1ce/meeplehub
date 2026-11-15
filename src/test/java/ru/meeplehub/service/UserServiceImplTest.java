@@ -33,6 +33,9 @@ class UserServiceImplTest {
     @Autowired
     private BoardGameRepository boardGameRepository;
 
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
     @BeforeEach
     void setUp() {
         registrationRepository.deleteAll();
@@ -47,35 +50,43 @@ class UserServiceImplTest {
         User user = userService.registerUser(
                 "player_1",
                 "player@example.com",
-                "Player One"
+                "Player One",
+                "Password123!"
         );
 
         assertNotNull(user.getId());
         assertEquals("player_1", user.getUsername());
         assertEquals(UserStatus.ACTIVE, user.getStatus());
+        
+        assertNotEquals("Password123!", user.getPasswordHash());
+
+        assertTrue(passwordEncoder.matches(
+                "Password123!",
+                user.getPasswordHash()
+        ));
     }
 
     @Test
     void shouldRejectDuplicateUsername() {
         userService.registerUser(
-                "player_1", "one@example.com", "Player One");
+                "player_1", "one@example.com", "Player One","Password123!");
 
         assertThrows(IllegalArgumentException.class,
                 () -> userService.registerUser(
-                        "PLAYER_1", "two@example.com", "Player Two"));
+                        "PLAYER_1", "two@example.com", "Player Two","Password123!"));
     }
 
     @Test
     void shouldRejectInvalidEmail() {
         assertThrows(IllegalArgumentException.class,
                 () -> userService.registerUser(
-                        "player_1", "wrong-email", "Player One"));
+                        "player_1", "wrong-email", "Player One","Password123!"));
     }
 
     @Test
     void shouldUpdateProfile() {
         User user = userService.registerUser(
-                "player_1", "one@example.com", "Player One");
+                "player_1", "one@example.com", "Player One","Password123!");
 
         User updated = userService.updateProfile(
                 user.getId(), "new@example.com", "New Name");
@@ -87,7 +98,7 @@ class UserServiceImplTest {
     @Test
     void shouldChangeStatus() {
         User user = userService.registerUser(
-                "player_1", "one@example.com", "Player One");
+                "player_1", "one@example.com", "Player One","Password123!");
 
         User updated = userService.changeStatus(
                 user.getId(), UserStatus.BLOCKED);
@@ -98,7 +109,7 @@ class UserServiceImplTest {
     @Test
     void shouldDeleteUser() {
         User user = userService.registerUser(
-                "player_1", "one@example.com", "Player One");
+                "player_1", "one@example.com", "Player One","Password123!");
 
         userService.deleteById(user.getId());
 

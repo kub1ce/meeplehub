@@ -2,6 +2,7 @@ package ru.meeplehub.service;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.meeplehub.config.AppConfiguration;
 import ru.meeplehub.domain.entity.User;
 import ru.meeplehub.domain.enums.UserRole;
@@ -14,18 +15,23 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final AppConfiguration appConfiguration;
+    private final PasswordEncoder passwordEncoder;
 
     public UserServiceImpl(
             UserRepository userRepository,
-            AppConfiguration appConfiguration) {
+            AppConfiguration appConfiguration,
+            PasswordEncoder passwordEncoder) {
+
         this.userRepository = userRepository;
         this.appConfiguration = appConfiguration;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostConstruct
@@ -39,7 +45,8 @@ public class UserServiceImpl implements UserService {
     public User registerUser(
             String username,
             String email,
-            String displayName) {
+            String displayName,
+            String rawPassword) {
 
         String normalizedUsername =
                 requireText(username, "Логин", 3, 30);
@@ -49,19 +56,33 @@ public class UserServiceImpl implements UserService {
                     "Некорректный формат логина.");
         }
 
-        String normalizedEmail =
-                normalizeEmail(email);
+        String normalizedEmail = normalizeEmail(email);
 
         String normalizedDisplayName =
                 requireText(displayName, "Имя", 2, 80);
+
+        if (rawPassword == null || rawPassword.length() < 8) {
+            throw new IllegalArgumentException(
+                    "Пароль должен содержать минимум 8 символов.");
+        }
+
+        if (rawPassword.getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new IllegalArgumentException(
+                    "Пароль слишком длинный.");
+        }
 
         ensureUsernameAndEmailAreUnique(
                 normalizedUsername, normalizedEmail);
 
         User user = new User();
+
         user.setUsername(normalizedUsername);
         user.setEmail(normalizedEmail);
         user.setDisplayName(normalizedDisplayName);
+
+        // Сохраняем BCrypt-хеш, а не исходный пароль.
+        user.setPasswordHash(passwordEncoder.encode(rawPassword));
+
         user.setRegisteredAt(LocalDateTime.now());
         user.setRole(UserRole.MEMBER);
         user.setStatus(UserStatus.ACTIVE);
