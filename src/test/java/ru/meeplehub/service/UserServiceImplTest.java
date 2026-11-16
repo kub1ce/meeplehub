@@ -57,7 +57,7 @@ class UserServiceImplTest {
         assertNotNull(user.getId());
         assertEquals("player_1", user.getUsername());
         assertEquals(UserStatus.ACTIVE, user.getStatus());
-        
+
         assertNotEquals("Password123!", user.getPasswordHash());
 
         assertTrue(passwordEncoder.matches(
